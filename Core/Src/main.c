@@ -317,7 +317,7 @@ void OrangeTask() {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
-    // Red LED
+    // Red LED triggered
     HAL_GPIO_TogglePin(GPIOD, Red_LED_Pin);
     
     if (xSemaphoreGiveFromISR(xSemaphore, &pxHigherPriorityTaskWoken))
