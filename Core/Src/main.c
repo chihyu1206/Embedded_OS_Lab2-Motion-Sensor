@@ -292,46 +292,45 @@ void GreenTask() {
 		HAL_GPIO_TogglePin(GPIOD, Green_LED_Pin);
 		vTaskDelay(1000);
 	}
-	return;
 }
 
 void OrangeTask() {
 	uint8_t data = 0;
 	int i = 0;
 	while (1) {
-		xSemaphoreTake(xSemaphore, portMAX_DELAY);
-
-		for (i = 0; i < 5; i++) {
-			HAL_GPIO_WritePin(GPIOD, Orange_LED_Pin, GPIO_PIN_SET);
-			vTaskDelay(1000);
-			HAL_GPIO_WritePin(GPIOD, Orange_LED_Pin, GPIO_PIN_RESET);
-			vTaskDelay(1000);
+		if (xSemaphoreTake(xSemaphore, portMAX_DELAY) == pdTRUE) {
+		    for (i = 0; i < 5; i++) {
+			    HAL_GPIO_WritePin(GPIOD, Orange_LED_Pin, GPIO_PIN_SET);
+			    vTaskDelay(1000);
+			    HAL_GPIO_WritePin(GPIOD, Orange_LED_Pin, GPIO_PIN_RESET);
+			    vTaskDelay(1000);
+		    }
+		  /*
+		   * The sensor interrupt will only be executed once if
+		   * you do not reset interrupt register
+		   * or read “STAT (18h)” or “OUTS1 (5Fh)” register in interrupt handler.
+		   */
+		    MEMS_Read(0x5f, &data);
 		}
-		/*
-		 * The sensor interrupt will only be executed once if
-		 * you do not reset interrupt register
-		 * or read “STAT (18h)” or “OUTS1 (5Fh)” register in interrupt handler.
-		 */
-		MEMS_Read(0x5f, &data);
 	}
-    return;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
+    // Red LED blinks
     if (HAL_GPIO_ReadPin(GPIOD, Red_LED_Pin)) {
-    	HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_RESET);
+        vTaskDelay(1000);
+        HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_RESET);
     } else {
     	HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_SET);
+    	vTaskDelay(1000);
+    	HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_RESET);
     }
-
-    if (xSemaphoreGiveFromISR(xSemaphore, &pxHigherPriorityTaskWoken)) {
+    
+    if (xSemaphoreGiveFromISR(xSemaphore, &pxHigherPriorityTaskWoken))
     	HAL_GPIO_WritePin(GPIOD, Green_LED_Pin, GPIO_PIN_RESET);
-    }
-    // priority number > configMAX_SYSCALL_INTERUPT_PRORITY(== 5)
+    // if pxHigherpriorityTaskWoken == pdTRUE, ask for context switch	
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-    return;
-
 }
 /* USER CODE END 4 */
 
