@@ -317,15 +317,8 @@ void OrangeTask() {
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
-    // Red LED blinks
-    if (HAL_GPIO_ReadPin(GPIOD, Red_LED_Pin)) {
-        vTaskDelay(1000);
-        HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_RESET);
-    } else {
-    	HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_SET);
-    	vTaskDelay(1000);
-    	HAL_GPIO_WritePin(GPIOD, Red_LED_Pin, GPIO_PIN_RESET);
-    }
+    // Red LED
+    HAL_GPIO_TogglePin(GPIOD, Red_LED_Pin);
     
     if (xSemaphoreGiveFromISR(xSemaphore, &pxHigherPriorityTaskWoken))
     	HAL_GPIO_WritePin(GPIOD, Green_LED_Pin, GPIO_PIN_RESET);
